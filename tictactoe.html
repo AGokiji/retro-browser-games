@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Крестики-нолики</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f0f1a;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+    }
+
+    .container {
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, #a78bfa, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .status {
+      font-size: 1.1rem;
+      margin-bottom: 1.5rem;
+      color: #a0aec0;
+      height: 1.6rem;
+    }
+
+    .status .player-x { color: #f472b6; font-weight: bold; }
+    .status .player-o { color: #60a5fa; font-weight: bold; }
+
+    .mode-selector {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .mode-btn {
+      padding: 0.4rem 1.2rem;
+      border-radius: 999px;
+      border: 2px solid #374151;
+      background: transparent;
+      color: #9ca3af;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .mode-btn.active {
+      border-color: #a78bfa;
+      background: rgba(167, 139, 250, 0.15);
+      color: #fff;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 110px);
+      grid-template-rows: repeat(3, 110px);
+      gap: 10px;
+      margin: 0 auto 1.5rem;
+      width: fit-content;
+    }
+
+    .cell {
+      width: 110px;
+      height: 110px;
+      border-radius: 16px;
+      background: #1a1a2e;
+      border: 2px solid #2d2d4e;
+      cursor: pointer;
+      font-size: 3rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, transform 0.1s, border-color 0.15s;
+      user-select: none;
+    }
+
+    .cell:hover:not(.taken) {
+      background: #22224a;
+      border-color: #4c4c8f;
+      transform: scale(1.04);
+    }
+
+    .cell.x { color: #f472b6; }
+    .cell.o { color: #60a5fa; }
+
+    .cell.win {
+      background: rgba(167, 139, 250, 0.2);
+      border-color: #a78bfa;
+      animation: pulse 0.6s ease;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    .cell.taken { cursor: default; }
+
+    .btn {
+      padding: 0.65rem 2rem;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, #a78bfa, #60a5fa);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn:hover { opacity: 0.9; transform: scale(1.03); }
+    .btn:active { transform: scale(0.97); }
+
+    .score {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .score-item {
+      background: #1a1a2e;
+      border: 1px solid #2d2d4e;
+      border-radius: 12px;
+      padding: 0.5rem 1.4rem;
+    }
+
+    .score-item .label {
+      font-size: 0.75rem;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .score-item .value {
+      font-size: 1.6rem;
+      font-weight: bold;
+    }
+
+    .score-item.x .value { color: #f472b6; }
+    .score-item.o .value { color: #60a5fa; }
+    .score-item.draw .value { color: #fbbf24; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Крестики-нолики</h1>
+
+  <div class="mode-selector">
+    <button class="mode-btn active" onclick="setMode('pvp')">👥 2 игрока</button>
+    <button class="mode-btn" onclick="setMode('easy')">🤖 Лёгкий ИИ</button>
+    <button class="mode-btn" onclick="setMode('hard')">🧠 Сложный ИИ</button>
+  </div>
+
+  <div class="score">
+    <div class="score-item x"><div class="label">X</div><div class="value" id="score-x">0</div></div>
+    <div class="score-item draw"><div class="label">Ничья</div><div class="value" id="score-d">0</div></div>
+    <div class="score-item o"><div class="label">O</div><div class="value" id="score-o">0</div></div>
+  </div>
+
+  <div class="status" id="status">Ход игрока <span class="player-x">X</span></div>
+
+  <div class="board" id="board">
+    <div class="cell" onclick="handleClick(0)"></div>
+    <div class="cell" onclick="handleClick(1)"></div>
+    <div class="cell" onclick="handleClick(2)"></div>
+    <div class="cell" onclick="handleClick(3)"></div>
+    <div class="cell" onclick="handleClick(4)"></div>
+    <div class="cell" onclick="handleClick(5)"></div>
+    <div class="cell" onclick="handleClick(6)"></div>
+    <div class="cell" onclick="handleClick(7)"></div>
+    <div class="cell" onclick="handleClick(8)"></div>
+  </div>
+
+  <button class="btn" onclick="resetGame()">Новая игра</button>
+</div>
+
+<script>
+  const WINS = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+  let board = Array(9).fill(null);
+  let current = 'X';
+  let gameOver = false;
+  let mode = 'pvp';
+  let score = { X: 0, O: 0, D: 0 };
+
+  function setMode(m) {
+    mode = m;
+    document.querySelectorAll('.mode-btn').forEach((b, i) => {
+      b.classList.toggle('active', ['pvp','easy','hard'][i] === m);
+    });
+    resetGame();
+  }
+
+  function handleClick(i) {
+    if (gameOver || board[i]) return;
+    if (mode !== 'pvp' && current === 'O') return;
+    makeMove(i);
+  }
+
+  function makeMove(i) {
+    board[i] = current;
+    renderBoard();
+    const win = checkWin();
+    if (win) { endGame(win); return; }
+    if (board.every(Boolean)) { endDraw(); return; }
+    current = current === 'X' ? 'O' : 'X';
+    updateStatus();
+    if (mode !== 'pvp' && current === 'O' && !gameOver) {
+      setTimeout(aiMove, 350);
+    }
+  }
+
+  function aiMove() {
+    let idx;
+    if (mode === 'hard') idx = bestMove();
+    else idx = easyMove();
+    makeMove(idx);
+  }
+
+  function easyMove() {
+    // 70% random, 30% smart
+    if (Math.random() < 0.3) return bestMove();
+    const empty = board.map((v,i) => v ? null : i).filter(v => v !== null);
+    return empty[Math.floor(Math.random() * empty.length)];
+  }
+
+  function bestMove() {
+    // Minimax
+    let best = -Infinity, idx = -1;
+    for (let i = 0; i < 9; i++) {
+      if (!board[i]) {
+        board[i] = 'O';
+        const score = minimax(board, 0, false);
+        board[i] = null;
+        if (score > best) { best = score; idx = i; }
+      }
+    }
+    return idx;
+  }
+
+  function minimax(b, depth, isMax) {
+    const w = checkWinBoard(b);
+    if (w === 'O') return 10 - depth;
+    if (w === 'X') return depth - 10;
+    if (b.every(Boolean)) return 0;
+    if (isMax) {
+      let best = -Infinity;
+      for (let i = 0; i < 9; i++) {
+        if (!b[i]) { b[i] = 'O'; best = Math.max(best, minimax(b, depth+1, false)); b[i] = null; }
+      }
+      return best;
+    } else {
+      let best = Infinity;
+      for (let i = 0; i < 9; i++) {
+        if (!b[i]) { b[i] = 'X'; best = Math.min(best, minimax(b, depth+1, true)); b[i] = null; }
+      }
+      return best;
+    }
+  }
+
+  function checkWinBoard(b) {
+    for (const [a,c,d] of WINS) {
+      if (b[a] && b[a] === b[c] && b[c] === b[d]) return b[a];
+    }
+    return null;
+  }
+
+  function checkWin() {
+    for (const combo of WINS) {
+      const [a,b,c] = combo;
+      if (board[a] && board[a] === board[b] && board[b] === board[c]) return combo;
+    }
+    return null;
+  }
+
+  function endGame(combo) {
+    gameOver = true;
+    score[current]++;
+    updateScoreDisplay();
+    const cells = document.querySelectorAll('.cell');
+    combo.forEach(i => cells[i].classList.add('win'));
+    const cls = current === 'X' ? 'player-x' : 'player-o';
+    document.getElementById('status').innerHTML =
+      `Победил <span class="${cls}">${current}</span>! 🎉`;
+  }
+
+  function endDraw() {
+    gameOver = true;
+    score.D++;
+    updateScoreDisplay();
+    document.getElementById('status').textContent = 'Ничья! 🤝';
+  }
+
+  function updateStatus() {
+    const cls = current === 'X' ? 'player-x' : 'player-o';
+    document.getElementById('status').innerHTML =
+      `Ход игрока <span class="${cls}">${current}</span>`;
+  }
+
+  function renderBoard() {
+    const cells = document.querySelectorAll('.cell');
+    cells.forEach((cell, i) => {
+      cell.textContent = board[i] || '';
+      cell.className = 'cell';
+      if (board[i]) {
+        cell.classList.add(board[i].toLowerCase(), 'taken');
+      }
+    });
+  }
+
+  function updateScoreDisplay() {
+    document.getElementById('score-x').textContent = score.X;
+    document.getElementById('score-o').textContent = score.O;
+    document.getElementById('score-d').textContent = score.D;
+  }
+
+  function resetGame() {
+    board = Array(9).fill(null);
+    current = 'X';
+    gameOver = false;
+    renderBoard();
+    updateStatus();
+  }
+</script>
+</body>
+</html>
