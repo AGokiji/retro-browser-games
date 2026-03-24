@@ -31,6 +31,7 @@ open tictactoe.html
 |---|---|
 | `shooter.html` | Retro top-down shooter — main game |
 | `tictactoe.html` | Tic-Tac-Toe with PvP and AI modes |
+| `cycleforge.html` | CycleForge — Cycling Coach Dashboard (React 18 CDN + Babel standalone) |
 | `CLAUDE.md` | This file — living documentation, always kept up to date |
 
 Each game is a **single self-contained HTML file** with inline CSS and JS. No build tools, no package.json. External dependency: Google Fonts CDN (`Press Start 2P` font in shooter.html).
@@ -99,3 +100,31 @@ Unlocked at player levels: 1, 5, 10, 20, 30.
 ## Tic-Tac-Toe (`tictactoe.html`)
 
 Simple 3×3 board. Modes: PvP, Easy AI (30% minimax / 70% random), Hard AI (full minimax). Score persists in session. No localStorage.
+
+---
+
+## CycleForge Dashboard (`cycleforge.html`)
+
+React 18 loaded via CDN + Babel standalone. No build step — open directly in browser.
+
+### Tabs
+| Tab | Content |
+|---|---|
+| Дашборд | KPI cards (CTL/ATL/TSB/TSS), PMC line chart, week quick view, macrocycle bar |
+| Календарь | Full macrocycle list + current/previous week session rows |
+| Тренировка | Session detail: stats grid, structure segments, back navigation |
+| Зоны | FTP editor, 7-zone power table with computed watt ranges, FTP history, rider profile |
+| Аналитика | PMC chart, HRV/recovery table, nutrition alerts, zone distribution, TSS bar |
+
+### Key Data
+- `MACRO[]` — 40 weekly entries (04авг 2025 → 04май 2026) with `label`, `tss`, `phase`, `planned`
+- `pmcData[]` — 8 weeks CTL/ATL/TSB; `current:true` marks live week
+- `SESSIONS[]` — 12 sessions (10–22 марта 2026), each with structure segments
+- `PHASE_COLOR{}` — maps phase names to palette colours
+- `FTP_ZONES[]` — 7 zones Z1–Z7 with labels, pct ranges, colours
+- `FTP_HISTORY[]` — 5 test entries from Aug 2025 to Mar 2026
+
+### Components
+`Card`, `CardTitle`, `Badge`, `Alert`, `Stat`, `SessionRow` — UI primitives
+`SVGLine(data, keys, h)` — polyline chart (PMC)
+`SVGBar(data, h)` — bar chart (TSS macrocycle)
