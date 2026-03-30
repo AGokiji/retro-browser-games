@@ -2,39 +2,48 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## ВАЖНОЕ ПРАВИЛО — Обязательно при каждом изменении
-
-**После каждого изменения в проекте:**
-1. Обновить этот файл `CLAUDE.md` (добавить/изменить описание новых фич, архитектуры, управления)
-2. Сделать `git add -A`
-3. Сделать `git commit -m "..."`
-4. Сделать `git push`
-
 Репозиторий: **https://github.com/AGokiji/retro-browser-games**
+
+После каждого изменения: обновить `CLAUDE.md`, `git add -A`, `git commit`, `git push`.
 
 ---
 
-## Running the Games
+## Running the Projects
 
-Open any HTML file directly in a browser — no build step, server, or dependencies required:
-
+### HTML games (no build step)
 ```bash
 open shooter.html
 open tictactoe.html
+```
+
+### Claude Artifact Runner (Vite + React)
+```bash
+cd claude-artifact-runner
+npm install      # first time only
+npm run dev      # dev server at http://localhost:5173
+npm run build    # production build
+npm run preview  # preview production build locally
+npm run lint     # ESLint
 ```
 
 ---
 
 ## Repository Structure
 
-| File | Description |
+| File / Dir | Description |
 |---|---|
-| `shooter.html` | Retro top-down shooter — main game |
-| `tictactoe.html` | Tic-Tac-Toe with PvP and AI modes |
-| `cycleforge.html` | CycleForge — Cycling Coach Dashboard (React 18 CDN + Babel standalone) |
+| `shooter.html` | Retro top-down shooter — single self-contained HTML/JS/CSS file |
+| `tictactoe.html` | Tic-Tac-Toe with PvP and AI modes — single self-contained HTML file |
+| `CycleForge_4.jsx` | CycleForge cycling coach dashboard — JSX artifact for the artifact runner |
+| `claude-artifact-runner/` | Vite + React 19 + Tailwind + Shadcn UI environment for running JSX artifacts |
 | `CLAUDE.md` | This file — living documentation, always kept up to date |
 
-Each game is a **single self-contained HTML file** with inline CSS and JS. No build tools, no package.json. External dependency: Google Fonts CDN (`Press Start 2P` font in shooter.html).
+HTML games are self-contained with inline CSS/JS. External dependency: Google Fonts CDN (`Press Start 2P` in shooter.html).
+
+`claude-artifact-runner/` is a **separate git repository** (its own `.git`). Git commands run from the project root do not affect it.
+
+### Claude Artifact Runner workflow
+Paste any Claude-generated JSX into `claude-artifact-runner/src/Artifact.jsx` and the dev server hot-reloads it. All Shadcn UI components (`@/components/ui/…`), Lucide icons, Recharts, and Tailwind are pre-installed. `CycleForge_4.jsx` is the current dashboard artifact — copy its contents into `Artifact.jsx` to run it.
 
 ---
 
@@ -103,9 +112,9 @@ Simple 3×3 board. Modes: PvP, Easy AI (30% minimax / 70% random), Hard AI (full
 
 ---
 
-## CycleForge Dashboard (`cycleforge.html`)
+## CycleForge Dashboard (`CycleForge_4.jsx`)
 
-React 18 loaded via CDN + Babel standalone. No build step — open directly in browser.
+React 19 component. Run it by pasting into `claude-artifact-runner/src/Artifact.jsx` and starting `npm run dev`.
 
 ### Tabs
 | Tab | Content |
@@ -113,18 +122,14 @@ React 18 loaded via CDN + Babel standalone. No build step — open directly in b
 | Дашборд | KPI cards (CTL/ATL/TSB/TSS), PMC line chart, week quick view, macrocycle bar |
 | Календарь | Full macrocycle list + current/previous week session rows |
 | Тренировка | Session detail: stats grid, structure segments, back navigation |
-| Зоны | FTP editor, 7-zone power table with computed watt ranges, FTP history, rider profile |
+| Зоны | FTP editor, 6-zone power table with computed watt ranges, FTP history, rider profile |
 | Аналитика | PMC chart, HRV/recovery table, nutrition alerts, zone distribution, TSS bar |
 
-### Key Data
-- `MACRO[]` — 40 weekly entries (04авг 2025 → 04май 2026) with `label`, `tss`, `phase`, `planned`
-- `pmcData[]` — 8 weeks CTL/ATL/TSB; `current:true` marks live week
-- `SESSIONS[]` — 12 sessions (10–22 марта 2026), each with structure segments
-- `PHASE_COLOR{}` — maps phase names to palette colours
-- `FTP_ZONES[]` — 7 zones Z1–Z7 with labels, pct ranges, colours
-- `FTP_HISTORY[]` — 5 test entries from Aug 2025 to Mar 2026
+### Key Data (`CycleForge_4.jsx`)
+- `ATHLETE_DEFAULTS` — rider profile: FTP, weight, HR max, LTHR, FTP history
+- `calcZones(ftp)` — derives 6 power zones (Z1–Z6) dynamically from FTP; stored in state via `useState`
+- `BLOCKS[]` — 7 training blocks (Base → Race A, Aug 2025 → May 2026) with `id`, `name`, `start/end`, `color`, `active`
+- `WEEK_PLAN[]` — current week sessions (Mon–Sun) with type, title, TSS, zone
 
-### Components
-`Card`, `CardTitle`, `Badge`, `Alert`, `Stat`, `SessionRow` — UI primitives
-`SVGLine(data, keys, h)` — polyline chart (PMC)
-`SVGBar(data, h)` — bar chart (TSS macrocycle)
+### Components (`CycleForge_4.jsx`)
+Uses Shadcn UI primitives (`Card`, `Badge`, `Button`, `Tabs`, etc.) and Recharts (`BarChart`, `LineChart`, `AreaChart`, `PieChart`, `RadarChart`) — all pre-installed in the artifact runner.
